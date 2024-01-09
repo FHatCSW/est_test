@@ -1,5 +1,6 @@
 import est.client
 import re
+import json
 
 class ESTClientWrapper:
     def __init__(self, host, port, alias, implicit_trust_anchor_cert_path):
@@ -26,7 +27,18 @@ class ESTClientWrapper:
     def simpleenroll(self, csr):
         return self.client.simpleenroll(csr)
 
-def handle_alias(host, port, alias, implicit_trust_anchor_cert_path, username, password, common_name, country, organization, organization_unit, subject_alt_name):
+def load_credentials_from_config(config_path='config.json'):
+    with open(config_path, 'r') as file:
+        config_data = json.load(file)
+    return (
+        config_data.get('username'),
+        config_data.get('password'),
+        config_data.get('client_alias'),
+        config_data.get('server_alias')
+    )
+
+def handle_alias(username, password, host, port, alias, implicit_trust_anchor_cert_path, common_name, country, organization, organization_unit, subject_alt_name):
+
     est_wrapper = ESTClientWrapper(host, port, alias, implicit_trust_anchor_cert_path)
     est_wrapper.configure_basic_auth(username, password)
 
@@ -36,28 +48,21 @@ def handle_alias(host, port, alias, implicit_trust_anchor_cert_path, username, p
 
     client_cert = est_wrapper.simpleenroll(csr)
 
+    print(f'-----{alias.upper()} CERTIFICATE-----')
     print(client_cert)
 
 if __name__ == "__main__":
     host = '74.234.234.46'
     port = 443
     implicit_trust_anchor_cert_path = 'OiPKIMngCA-chain.pem'
-    username = 'plcnext'
-    password = 'g2hjOhO7h5a6'
-    client_alias = '/PhoenixContact-OpcClient'
-    server_alias = '/PhoenixContact-OpcServer'
     common_name = 'test_plc_002'
     country = 'DE'
     organization = 'PC'
     organization_unit = 'BUAS'
     subject_alt_name = b'URI:http://www.ietf.org/rfc/rfc3986.txt'
 
-    print('-----CLIENT CERTIFICATE-----')
-    handle_alias(host, port, client_alias, implicit_trust_anchor_cert_path, username, password, common_name, country, organization, organization_unit, subject_alt_name)
+    username, password, client_alias, server_alias = load_credentials_from_config()
 
-    print('-----SERVER CERTIFICATE-----')
-    handle_alias(host, port, server_alias, implicit_trust_anchor_cert_path, username, password, common_name, country, organization, organization_unit, subject_alt_name)
+    handle_alias(username, password, host, port, client_alias, implicit_trust_anchor_cert_path, common_name, country, organization, organization_unit, subject_alt_name)
 
-
-
-
+    handle_alias(username, password, host, port, server_alias, implicit_trust_anchor_cert_path, common_name, country, organization, organization_unit, subject_alt_name)
