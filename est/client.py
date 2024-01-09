@@ -9,6 +9,7 @@ import asn1crypto.core
 import est.errors
 import est.request
 
+
 class Client(object):
     """API client.
 
@@ -51,7 +52,7 @@ class Client(object):
         """
         url = self.url_prefix + '/cacerts'
         content = est.request.get(url,
-            verify=self.implicit_trust_anchor_cert_path)
+                                  verify=self.implicit_trust_anchor_cert_path)
 
         pem = self.pkcs7_to_pem(content)
 
@@ -71,12 +72,17 @@ class Client(object):
         """
         url = self.url_prefix + '/simpleenroll'
         auth = (self.username, self.password)
+
+        print(auth)
         headers = {
             'Content-Type': 'application/pkcs10',
-#            'Content-Transfer-Encoding': 'base64',
+            #'Content-Transfer-Encoding': 'base64',
         }
+
+        print(csr)
         content = est.request.post(url, csr, auth=auth, headers=headers,
-            verify=self.implicit_trust_anchor_cert_path)
+                                   verify=self.implicit_trust_anchor_cert_path)
+
         pem = self.pkcs7_to_pem(content)
 
         return pem
@@ -99,8 +105,12 @@ class Client(object):
         auth = (self.username, self.password)
         headers = {'Content-Type': 'application/pkcs10'}
         content = est.request.post(url, csr, auth=auth, headers=headers,
-            verify=self.implicit_trust_anchor_cert_path,
-            cert=cert)
+                                   verify=self.implicit_trust_anchor_cert_path,
+                                   cert=cert)
+
+        print("test")
+        print(content)
+        print("test")
         pem = self.pkcs7_to_pem(content)
 
         return pem
@@ -116,6 +126,7 @@ class Client(object):
         """
         self.username = username
         self.password = password
+
 
     def create_csr(self, common_name, country=None, state=None, city=None,
                    organization=None, organizational_unit=None,
@@ -170,9 +181,10 @@ class Client(object):
             OpenSSL.crypto.FILETYPE_PEM, key)
 
         csr = OpenSSL.crypto.dump_certificate_request(
-                   OpenSSL.crypto.FILETYPE_PEM, req)
+            OpenSSL.crypto.FILETYPE_PEM, req)
 
         return private_key, csr
+
 
     def pkcs7_to_pem(self, pkcs7):
         inform = None
