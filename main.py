@@ -55,10 +55,10 @@ if __name__ == "__main__":
     host = '74.234.234.46'
     port = 443
     implicit_trust_anchor_cert_path = 'OiPKIMngCA-chain.pem'
-    common_name = 'test_plc_002'
+    common_name = 'my_cn'
     country = 'DE'
-    organization = 'PC'
-    organization_unit = 'BUAS'
+    organization = 'my_o'
+    organization_unit = 'my_ou'
     subject_alt_name = b'URI:http://www.ietf.org/rfc/rfc3986.txt'
 
     username, password, client_alias, server_alias = load_credentials_from_config()
