@@ -52,7 +52,6 @@ def handle_alias(username, password, host, port, alias, implicit_trust_anchor_ce
     print(client_cert)
 
 if __name__ == "__main__":
-    host = '74.234.234.46'
     port = 443
     implicit_trust_anchor_cert_path = 'bin/OiPKIMngCA-chain.pem'
     common_name = 'my_cn'
@@ -61,7 +60,7 @@ if __name__ == "__main__":
     organization_unit = 'my_ou'
     subject_alt_name = b'URI:http://www.ietf.org/rfc/rfc3986.txt'
 
-    username, password, client_alias, server_alias = load_credentials_from_config()
+    host, username, password, client_alias, server_alias = load_credentials_from_config()
 
     handle_alias(username, password, host, port, client_alias, implicit_trust_anchor_cert_path, common_name, country, organization, organization_unit, subject_alt_name)
 
