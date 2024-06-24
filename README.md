@@ -16,6 +16,7 @@ Credentials and other configuration parameters are stored in a config.json file.
 
 ```json
 {
+    "host": "your_hostname",
     "username": "your_username",
     "password": "your_password",
     "client_alias": "/your_client_alias",
