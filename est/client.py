@@ -5,6 +5,10 @@ interacting with the EJBCA Campus PKI system
 
 import subprocess
 import OpenSSL.crypto
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.serialization import pkcs7
+from cryptography.hazmat.backends import default_backend
+from cryptography import x509
 import asn1crypto.core
 import est.errors
 import est.request
@@ -73,13 +77,11 @@ class Client(object):
         url = self.url_prefix + '/simpleenroll'
         auth = (self.username, self.password)
 
-        print(auth)
         headers = {
             'Content-Type': 'application/pkcs10',
             #'Content-Transfer-Encoding': 'base64',
         }
 
-        print(csr)
         content = est.request.post(url, csr, auth=auth, headers=headers,
                                    verify=self.implicit_trust_anchor_cert_path)
 
@@ -185,29 +187,31 @@ class Client(object):
 
         return private_key, csr
 
-
-    def pkcs7_to_pem(self, pkcs7):
+    def pkcs7_to_pem(self, pkcs7_data):
         inform = None
-        for filetype in (OpenSSL.crypto.FILETYPE_PEM,
-                         OpenSSL.crypto.FILETYPE_ASN1):
+        try:
+            # Attempt to load PKCS7 data as PEM
+            pkcs7_obj = pkcs7.load_pem_pkcs7_certificates(pkcs7_data)
+            inform = 'PEM'
+        except ValueError:
             try:
-                OpenSSL.crypto.load_pkcs7_data(filetype, pkcs7)
-                if filetype == OpenSSL.crypto.FILETYPE_PEM:
-                    inform = 'PEM'
-                else:
-                    inform = 'DER'
-                break
-            except OpenSSL.crypto.Error:
-                pass
+                # Attempt to load PKCS7 data as DER
+                pkcs7_obj = pkcs7.load_der_pkcs7_certificates(pkcs7_data)
+                inform = 'DER'
+            except ValueError:
+                raise est.errors.Error('Invalid PKCS7 data type')
 
         if not inform:
             raise est.errors.Error('Invalid PKCS7 data type')
 
-        stdout, stderr = subprocess.Popen(
-            ['openssl', 'pkcs7', '-inform', inform, '-outform', 'PEM',
-             '-print_certs'],
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-            stdin=subprocess.PIPE
-        ).communicate(pkcs7)
+        # Use OpenSSL subprocess call to convert PKCS7 to PEM
+        process = subprocess.Popen(
+            ['openssl', 'pkcs7', '-inform', inform, '-outform', 'PEM', '-print_certs'],
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+        stdout, stderr = process.communicate(input=pkcs7_data)
+
+        if process.returncode != 0:
+            raise est.errors.Error(f"OpenSSL error: {stderr.decode('utf-8')}")
 
         return stdout.decode("utf-8")

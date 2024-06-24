@@ -54,7 +54,7 @@ def handle_alias(username, password, host, port, alias, implicit_trust_anchor_ce
 if __name__ == "__main__":
     host = '74.234.234.46'
     port = 443
-    implicit_trust_anchor_cert_path = 'OiPKIMngCA-chain.pem'
+    implicit_trust_anchor_cert_path = 'bin/OiPKIMngCA-chain.pem'
     common_name = 'my_cn'
     country = 'DE'
     organization = 'my_o'
