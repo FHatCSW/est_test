@@ -31,6 +31,7 @@ def load_credentials_from_config(config_path='config.json'):
     with open(config_path, 'r') as file:
         config_data = json.load(file)
     return (
+        config_data.get('host'),
         config_data.get('username'),
         config_data.get('password'),
         config_data.get('client_alias'),
